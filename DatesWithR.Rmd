@@ -1,0 +1,232 @@
+---
+title: "Berkeley R User Group"
+subtitle: "Dates with R"
+author: "Dan Murphy"
+date: "July 21, 2015"
+output: 
+    slidy_presentation
+---
+
+# Date vs Date-Time
+
+> - CRAN's TimeSeries View: https://cran.r-project.org/web/views/TimeSeries.html
+
+>> - lubridate: https://github.com/hadley/lubridate
+
+>>> - "The methods we use with date-times must be robust to time zones, leap days, daylight savings times, and other time related quirks, and R lacks these capabilities in some situations."
+
+> - R's Two Main Date Classes are **POSIX\*t** (Date-Time) and **Date** (Date-only)
+
+>> - Two embodiments of POSIX*t
+
+>>> - POSIXct
+
+>>> - POSIXlt
+
+>>> - Search ISO 8601:2004
+
+<ul class="incremental">
+<li>
+```{r}
+(x <- as.POSIXct("2015-01-31 18:00"))
+(y <- as.POSIXlt("2015-01-31 18:00"))
+(z <- as.Date("2015-01-31 18:00"))
+```
+</li>
+
+***
+
+## What are these objects?
+
+<ul class="incremental">
+<li>
+```{r}
+class(x)
+class(y)
+class(z)
+```
+</li>
+
+## What's under the hood?
+
+<li>
+```{r}
+mode(x)
+mode(y)
+mode(z)
+```
+</li>
+<li>
+```{r}
+as.numeric(x)
+unlist(y)
+as.numeric(z)
+```
+</li>
+</ul>
+
+> * POSIXct = the number of seconds since 1/1/1970 in timezone "UTC" (aka, GMT)
+
+> * Date = the number of days since 1/1/1970
+
+<ul class="incremental">
+<li>
+```{r}
+x0 <- as.POSIXct("1970-01-01")
+as.numeric(x0)
+z0 <- as.Date("1970-01-01")
+as.numeric(z0)
+```
+</li>
+</ul>
+
+# Timezones are problematic
+
+> * POSIX*t's have a timezone
+
+<ul class="incremental">
+<li>
+```{r}
+x0
+```
+</li>
+</ul>
+
+> * Date's do not have no timezone
+
+<ul class="incremental">
+<li>
+```{r}
+z0
+```
+</li>
+</ul>
+
+> * Use 'tz' argument to specify a POSIX*t timezone
+
+<ul class="incremental">
+<li>
+```{r}
+xUTC <- as.POSIXct("1970-01-01", tz = "UTC")
+xUTC
+as.numeric(xUTC)
+
+# Extra credit: why did as.numeric(x0) = 28800?
+# Hint: 28800 = 8 * 60 * 60
+```
+</li>
+</ul>
+
+<ul class="incremental">
+<li>
+```{r}
+y0 <- as.POSIXlt("1970-01-01")
+y0$zone # Abbreviation - See https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
+Sys.timezone()
+y0 <- as.POSIXlt("1970-01-01", tz = "America/Los_Angeles")
+y0$zone
+yUTC <- as.POSIXlt("1970-01-01", tz = "UTC")
+yUTC
+yUTC$zone
+
+# Extra credit: why was the value of x0 28800?
+# Hint: 28800 = 8 * 60 * 60
+```
+</li>
+</ul>
+
+> * List of timezones on your OS: OlsonNames()
+
+> * Timezone abbreviations: https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
+
+> * Recommendation: if timezone info not needed, use Date class for simplification
+
+> * Many databases' date-time fields are based on the ISO standard (POSIXct)
+
+# Date Arithmetic
+
+> * A Year = 365 Days about 75% of the time
+
+>> * 2016 is the next leap year
+
+> * A Day always equals 60 x 60 x 24 = 86400 seconds in R,
+even the days that have leap seconds
+(e.g., June 30, 2015 at 23:59:60)
+
+> * A Month is not 30, 31, 28, 29 days
+
+> * What is one month from January 31, 2015?
+
+<ul class="incremental">
+<li>
+```{r}
+seq(from = as.Date("2015-01-31"), length = 2, by = "months")
+```
+</li>
+</ul>
+
+>> * Per R Help: Using "month" first advances the month without changing the day: 
+if this results in an invalid day of the month,
+it is counted forward into the next month
+
+<ul class="incremental">
+<li>
+```{r}
+seq(from=as.Date("2015-01-03"), length = 3, by = "months")
+```
+</li>
+
+> * For accountants, end of business (EOB), end of month (EOM), 
+end of year (EOY) are key moments in time
+
+# mondate package
+Keep track of dates in terms of months
+
+* http://cran.r-project.org/package=mondate
+
+* Damien Laker,
+"Time Calculations for Annualizing Returns: the Need for Standardization,"
+*The Journal of Performance Measurement*, 2008
+
+# Examples
+
+<ul class="incremental">
+<li>
+```{r}
+x <- as.Date("2015-07-31")
+x + 365
+```
+</li>
+<li>
+```{r}
+suppressPackageStartupMessages(library(mondate))
+y <- mondate("2015-07-31")
+y + 12
+```
+</li>
+
+
+
+# International vs. American Character Representation of Dates
+
+## Month Day Year
+
+# Sources of Information
+
+- http://blog.revolutionanalytics.com/2009/06/converting-time-zones.html
+- Bullet 3
+
+## lubridate
+
+http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/
+
+https://github.com/hadley/lubridate/blob/master/NEWS
+
+> * v1.3.0. treats math with month and year Periods more consistently. If adding 
+or subtracting n months would result in a non-existent date, lubridate will 
+return an NA instead of a day in the following month or year. For example, 
+`ymd("2013-01-31") + months(1)` will return `NA` instead of `2013-03-04` 
+as in v1.2.0. `ymd("2012-02-29") + years(1)` will also return an `NA`. This 
+rule change helps ensure that date + timespan - timespan = date (or NA). If 
+you'd prefer that such arithmetic just returns the last day of the resulting 
+month, see `%m+%` and `%m-%`.
