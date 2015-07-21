@@ -305,7 +305,7 @@ Keeps track of dates in terms of months
 * Like POSIXct, the underlying representation of a mondate object 
 is a "numeric"
 
-    * reprresents the number of months that have transpired
+    * represents the number of months that have transpired
 since the end of the year 1999
     
 # Examples
