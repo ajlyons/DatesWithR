@@ -33,27 +33,24 @@ output:
 (dt <- as.Date("2015-01-31 18:00"))
 ```
 </li>
+</ul>
+> * What's under the hood?
 
-***
-
-## What are these objects?
+# What's under the hood?
 
 <ul class="incremental">
-<li>
-```{r}
-class(ct)
-class(lt)
-class(dt)
-```
-</li>
-
-## What's under the hood?
-
 <li>
 ```{r}
 mode(ct)
 mode(lt)
 mode(dt)
+```
+</li>
+<li>
+```{r}
+attributes(ct)
+attributes(lt)
+attributes(dt)
 ```
 </li>
 <li>
@@ -65,9 +62,10 @@ as.numeric(dt)
 </li>
 </ul>
 
-> * POSIXct = the number of seconds since 1/1/1970 in timezone "UTC" (aka, GMT)
+> * POSIXct = the number of seconds since 1970-01-01 00:00:00 UTC
+(Universal Time Coordinated, aka GMT)
 
-> * Date = the number of days since 1/1/1970
+> * Date = the number of days since 1970-01-01
 
 <ul class="incremental">
 <li>
@@ -78,9 +76,17 @@ dt0 <- as.Date("1970-01-01")
 as.numeric(dt0)
 ```
 </li>
+
+* 0, okay, but 28800? Hmmm
 </ul>
 
-# Timezones are problematic
+# Timezones can be problematic
+
+> * ?timezones
+
+>> * "Time zones are a system-specific topic"
+
+>> * "Unfortunately there are many system-specific errors in the implementations"
 
 > * POSIX*t's have a timezone
 
@@ -134,13 +140,13 @@ lt$zone
 </li>
 </ul>
 
-> * If timezone is important, be explicit
+> * If timezone is important, be explicit with the 'tz' argument
 
->> * Abbreviations __do not__ work
+>> * Abbreviations __do not__ work for 'tz'
 
 >>> * See https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
 
->> * See OlsonNames() for list of valid timezones on your OS
+>> * See OlsonNames() for list of valid 'tz' arguments
 
 <ul class="incremental">
 <li>
@@ -155,14 +161,17 @@ lt$zone
 # Abbreviations don't work when specifying timezone
 suppressWarnings(as.POSIXlt("1970-01-01", tz = "PST"))
 # There were 11 warnings (use warnings() to see them)
+#Warning messages:
+#1: In strptime(xx, f <- "%Y-%m-%d %H:%M:%OS", tz = tz) : unknown timezone 'PST'
 ```
 </li>
 </ul>
 
-> * Recommendation: if timezone info not needed, use Date class for simplification
+> * Recommendation: if timezone not needed, use Date class for simplicity
 
-> * Many databases' date-time fields are based on the ISO standard (POSIXct),
-so be careful if timezone is unspecified in the date field
+> * Warning: Many databases' date-time fields are based on the ISO standard (POSIXct),
+so be careful if timezone is unspecified in the database because 
+__R will assume your local timezone__
 
 # Date Arithmetic
 
