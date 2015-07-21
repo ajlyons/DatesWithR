@@ -170,47 +170,129 @@ suppressWarnings(as.POSIXlt("1970-01-01", tz = "PST"))
 > * Recommendation: if timezone not needed, use Date class for simplicity
 
 > * Warning: Many databases' date-time fields are based on the ISO standard (POSIXct),
-so be careful if timezone is unspecified in the database because 
-__R will assume your local timezone__
+so __be careful if timezone is unspecified in the database__
+because R will assume your local timezone
 
-# Date Arithmetic
-
-> * A Year = 365 Days about 75% of the time
-
->> * 2016 is the next leap year
-
-> * A Day always equals 60 x 60 x 24 = 86400 seconds in R,
-even the days that have leap seconds
-(e.g., June 30, 2015 at 23:59:60)
-
-> * A Month is not 30, 31, 28, 29 days
-
-> * What is one month from January 31, 2015?
+# Conversion from Date to DateTime
 
 <ul class="incremental">
 <li>
 ```{r}
-seq(from = as.Date("2015-01-31"), length = 2, by = "months")
+dt0
+as.POSIXct(dt0)
+as.POSIXlt(dt0)
 ```
 </li>
 </ul>
 
->> * Per R Help: Using "month" first advances the month without changing the day: 
-if this results in an invalid day of the month,
-it is counted forward into the next month
+> * __GRR!!!__
+
+> * Recommendations when converting from Date to POSIX*t
+-- e.g., before storing the numeric value back to a database
+
+>> * Be agnostic as to timezone
+
+>> * Therefore, assume timezone is UTC 
+
+>> * When converting from Date to POSIX*t, __use lt__
+
+>> * Can convert to ct later
 
 <ul class="incremental">
 <li>
 ```{r}
-seq(from=as.Date("2015-01-03"), length = 3, by = "months")
+as.POSIXct(as.POSIXlt(dt0))
+unclass(as.POSIXct(as.POSIXlt(dt0)))
 ```
 </li>
+</ul>
+
+>> * Of course, the information on this page is moot 
+if the database stores dates as character strings
+
+# Date, DateTime Arithmetic
+
+> * Adding or subtracting units to/from a DateTime object works best with integers
+
+>> * number of seconds for POSIX*t
+
+>> * number of days for Date
+
+<ul class="incremental">
+<li>
+```{r}
+ct0 + 3600
+dt0 + 31
+```
+</li>
+</ul>
+
+> * 'difftime' object
+
+>> * Represents the interval between two instances of time
+
+>> * Can be created by subtracting two datetime objects
+
+<ul class="incremental">
+<li>
+```{r}
+as.POSIXct("1970-01-02") - ct0
+as.Date("1970-01-02") - dt0
+```
+</li>
+</ul>
+
+>> * Or by creating a difftime object
+
+<ul class="incremental">
+<li>
+```{r}
+u <- as.difftime(1, units = "days")
+u
+ct0 + u
+dt0 + u
+```
+</li>
+</ul>
+
+> * Allowable units are "auto", "secs", "mins", "hours",
+"days", and "weeks"
+
+>> * Missing "months" and "years"
+
+> * "months" _is_ available with 'seq' for datetime objects 
+(argument 'by')
+
+<ul class="incremental">
+<li>
+```{r}
+seq(from = dt0, length = 2, by = "months")
+```
+</li>
+</ul>
+
+> * What is one month from the last day of January?
+
+<ul class="incremental">
+<li>
+```{r}
+seq(from = as.Date("1970-01-31"), length = 2, by = "months")
+seq(from = as.Date("1970-01-03"), length = 3, by = "months")
+```
+</li>
+</ul>
+
+>> * Per ?seq.POSIXt: 
+Using "month" first advances the month without changing the day: 
+if this results in an invalid day of the month,
+it is counted forward into the next month
 
 > * For accountants, end of business (EOB), end of month (EOM), 
 end of year (EOY) are key moments in time
 
 # mondate package
-Keep track of dates in terms of months
+
+Keeps track of dates in terms of months
 
 * http://cran.r-project.org/package=mondate
 
@@ -218,6 +300,14 @@ Keep track of dates in terms of months
 "Time Calculations for Annualizing Returns: the Need for Standardization,"
 *The Journal of Performance Measurement*, 2008
 
+    * Proposed that dates be recorded as a percent of the month that has transpired
+    
+* Like POSIXct, the underlying representation of a mondate object 
+is a "numeric"
+
+    * reprresents the number of months that have transpired
+since the end of the year 1999
+    
 # Examples
 
 <ul class="incremental">
@@ -229,34 +319,29 @@ x + 365
 </li>
 <li>
 ```{r}
-suppressPackageStartupMessages(library(mondate))
+library(mondate)
 y <- mondate("2015-07-31")
 y + 12
+y + 1:12
 ```
 </li>
+</ul>
 
+> * mondate can handle dates in US format
 
+<ul class="incremental">
+<li>
+```{r}
+y <- mondate("7/31/2015")
+y + 1:12
+as.Date(y + 1:12)
+```
+</li>
+</ul>
 
-# International vs. American Character Representation of Dates
+> * Can be useful when dates stored in csv file are in US format
+(e.g., saved from Excel)
 
-## Month Day Year
+# Thank you
 
-# Sources of Information
-
-- http://blog.revolutionanalytics.com/2009/06/converting-time-zones.html
-- Bullet 3
-
-## lubridate
-
-http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/
-
-https://github.com/hadley/lubridate/blob/master/NEWS
-
-> * v1.3.0. treats math with month and year Periods more consistently. If adding 
-or subtracting n months would result in a non-existent date, lubridate will 
-return an NA instead of a day in the following month or year. For example, 
-`ymd("2013-01-31") + months(1)` will return `NA` instead of `2013-03-04` 
-as in v1.2.0. `ymd("2012-02-29") + years(1)` will also return an `NA`. This 
-rule change helps ensure that date + timespan - timespan = date (or NA). If 
-you'd prefer that such arithmetic just returns the last day of the resulting 
-month, see `%m+%` and `%m-%`.
+Dan Murphy
