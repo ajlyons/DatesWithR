@@ -28,9 +28,9 @@ output:
 <ul class="incremental">
 <li>
 ```{r}
-(x <- as.POSIXct("2015-01-31 18:00"))
-(y <- as.POSIXlt("2015-01-31 18:00"))
-(z <- as.Date("2015-01-31 18:00"))
+(ct <- as.POSIXct("2015-01-31 18:00"))
+(lt <- as.POSIXlt("2015-01-31 18:00"))
+(dt <- as.Date("2015-01-31 18:00"))
 ```
 </li>
 
@@ -41,9 +41,9 @@ output:
 <ul class="incremental">
 <li>
 ```{r}
-class(x)
-class(y)
-class(z)
+class(ct)
+class(lt)
+class(dt)
 ```
 </li>
 
@@ -51,16 +51,16 @@ class(z)
 
 <li>
 ```{r}
-mode(x)
-mode(y)
-mode(z)
+mode(ct)
+mode(lt)
+mode(dt)
 ```
 </li>
 <li>
 ```{r}
-as.numeric(x)
-unlist(y)
-as.numeric(z)
+as.numeric(ct)
+unlist(lt)
+as.numeric(dt)
 ```
 </li>
 </ul>
@@ -72,10 +72,10 @@ as.numeric(z)
 <ul class="incremental">
 <li>
 ```{r}
-x0 <- as.POSIXct("1970-01-01")
-as.numeric(x0)
-z0 <- as.Date("1970-01-01")
-as.numeric(z0)
+ct0 <- as.POSIXct("1970-01-01")
+as.numeric(ct0)
+dt0 <- as.Date("1970-01-01")
+as.numeric(dt0)
 ```
 </li>
 </ul>
@@ -87,17 +87,17 @@ as.numeric(z0)
 <ul class="incremental">
 <li>
 ```{r}
-x0
+ct0
 ```
 </li>
 </ul>
 
-> * Date's do not have no timezone
+> * Date's have __no__ timezone
 
 <ul class="incremental">
 <li>
 ```{r}
-z0
+dt0
 ```
 </li>
 </ul>
@@ -107,41 +107,62 @@ z0
 <ul class="incremental">
 <li>
 ```{r}
-xUTC <- as.POSIXct("1970-01-01", tz = "UTC")
-xUTC
-as.numeric(xUTC)
+ctUTC <- as.POSIXct("1970-01-01", tz = "UTC")
+ctUTC
+as.numeric(ctUTC)
 
-# Extra credit: why did as.numeric(x0) = 28800?
+# Extra credit: why did as.numeric(ct0) = 28800?
 # Hint: 28800 = 8 * 60 * 60
 ```
 </li>
 </ul>
+
+> * If 'tz' not specified, _local timezone_ is assumed
+
+>> * ct and lt treat differently
 
 <ul class="incremental">
 <li>
 ```{r}
-y0 <- as.POSIXlt("1970-01-01")
-y0$zone # Abbreviation - See https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
-Sys.timezone()
-y0 <- as.POSIXlt("1970-01-01", tz = "America/Los_Angeles")
-y0$zone
-yUTC <- as.POSIXlt("1970-01-01", tz = "UTC")
-yUTC
-yUTC$zone
-
-# Extra credit: why was the value of x0 28800?
-# Hint: 28800 = 8 * 60 * 60
+ct <- as.POSIXct("2015-07-21")
+ct
+attr(ct, "tzone")
+lt <- as.POSIXlt("2015-07-21")
+lt
+lt$zone
 ```
 </li>
 </ul>
 
-> * List of timezones on your OS: OlsonNames()
+> * If timezone is important, be explicit
 
-> * Timezone abbreviations: https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
+>> * Abbreviations __do not__ work
+
+>>> * See https://en.wikipedia.org/wiki/List_of_time_zone_abbreviations
+
+>> * See OlsonNames() for list of valid timezones on your OS
+
+<ul class="incremental">
+<li>
+```{r}
+Sys.timezone()
+ct <- as.POSIXlt("1970-01-01", tz = "America/Los_Angeles")
+ct
+attr(ct, "tzone")
+lt <- as.POSIXlt("1970-01-01", tz = "America/Los_Angeles")
+lt
+lt$zone
+# Abbreviations don't work when specifying timezone
+suppressWarnings(as.POSIXlt("1970-01-01", tz = "PST"))
+# There were 11 warnings (use warnings() to see them)
+```
+</li>
+</ul>
 
 > * Recommendation: if timezone info not needed, use Date class for simplification
 
-> * Many databases' date-time fields are based on the ISO standard (POSIXct)
+> * Many databases' date-time fields are based on the ISO standard (POSIXct),
+so be careful if timezone is unspecified in the date field
 
 # Date Arithmetic
 
