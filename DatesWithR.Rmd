@@ -317,6 +317,11 @@ x <- as.Date("2015-07-31")
 x + 365
 ```
 </li>
+</ul>
+
+> * mondate assumes one year = 12 months
+
+<ul class="incremental">
 <li>
 ```{r}
 library(mondate)
@@ -327,7 +332,7 @@ y + 1:12
 </li>
 </ul>
 
-> * mondate can handle dates in US format
+> * mondate can also handle dates in US format
 
 <ul class="incremental">
 <li>
@@ -344,4 +349,11 @@ as.Date(y + 1:12)
 
 # Thank you
 
+## See slides, markdown, etc. at https://github.com/trinostics/DatesWithR
+
+
 Dan Murphy
+
+![logo](C:\\Users\\Dan\\Desktop\\trinostics_logo.png) 
+Trinostics LLC  
+Property/Casualty Actuarial Analysis
